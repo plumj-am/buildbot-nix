@@ -1,12 +1,13 @@
-# Gitea Integration
+# Gitea (and Forgejo) Integration
 
-Buildbot-nix integrates with Gitea using access tokens for repository management
-and OAuth2 for user authentication. This enables automatic webhook setup, commit
-status updates, and secure authentication.
+Buildbot-nix integrates with Gitea (and by extension Forgejo) using access
+tokens for repository management and OAuth2 for user authentication. This
+enables automatic webhook setup, commit status updates, and secure
+authentication.
 
-## Step 1: Create a Gitea Access Token
+## Step 1: Create Gitea/Forgejo Access Token
 
-1. **Create a dedicated Gitea user** (recommended for organizations):
+1. **Create a dedicated user** (recommended for organizations):
    - This user will manage webhooks and report build statuses
    - Add this user as a collaborator to all repositories you want to build
 
@@ -36,11 +37,13 @@ status updates, and secure authentication.
 
 ## Step 3: Configure buildbot-nix
 
-Add the Gitea configuration to your NixOS module:
+Add the configuration to your NixOS module:
 
 ```nix
 services.buildbot-nix.master = {
-  authBackend = "gitea";
+  authBackend = "gitea"; # or "forgejo"
+
+  # NOTE: Forgejo uses the `gitea` options too
   gitea = {
     enable = true;
     instanceUrl = "https://gitea.example.com";
@@ -58,6 +61,7 @@ services.buildbot-nix.master = {
     sshKnownHostsFile = "/path/to/known-hosts";
 
     # Optional: Filter which repositories to build
+    # NOTE: Only works for Gitea; no effect for Forgejo
     topic = "buildbot-nix";  # Only build repos with this topic
   };
 };
@@ -85,13 +89,13 @@ For each repository you want to build:
 
 ## How It Works
 
-- **Authentication**: Uses Gitea access tokens for API operations
+- **Authentication**: Uses access tokens for API operations
 - **Project Discovery**: Automatically discovers repositories where the buildbot
   user has admin access, filtered by topic if configured
 - **Webhook Management**: Automatically creates and manages webhooks for push
   and pull_request events
-- **Status Updates**: Reports build status back to Gitea commits and pull
-  requests
+- **Status Updates**: Reports build status back to Gitea/Forgejo commits and
+  pull requests
 - **Access Control**:
   - Admins: Configured users can reload projects and manage builds
   - Organization members: Can restart their own builds (when OAuth is
@@ -115,4 +119,4 @@ For each repository you want to build:
   - For OAuth issues, verify the redirect URI matches exactly
 
 - **Private repositories**: If using SSH, ensure the SSH key is properly
-  configured and the known_hosts file contains the Gitea server
+  configured and the known_hosts file contains the Gitea/Forgejo server

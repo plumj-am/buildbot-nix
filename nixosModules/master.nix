@@ -138,6 +138,7 @@ in
         type = lib.types.enum [
           "github"
           "gitea"
+          "forgejo"
           "httpbasicauth"
           "oidc"
           "none"
@@ -259,6 +260,7 @@ in
               options = {
                 backend = lib.mkOption {
                   type = lib.types.enum [
+                    "forgejo"
                     "gitea"
                     "github"
                   ];
@@ -320,8 +322,8 @@ in
       };
 
       gitea = {
-        enable = lib.mkEnableOption "Enable Gitea integration" // {
-          default = cfg.authBackend == "gitea";
+        enable = lib.mkEnableOption "Enable Gitea/Forgejo integration" // {
+          default = cfg.authBackend == "gitea" || cfg.authBackend == "forgejo";
         };
 
         userAllowlist = lib.mkOption {
@@ -858,6 +860,17 @@ in
       }
       {
         assertion =
+          cfg.authBackend == "forgejo" -> (cfg.gitea.oauthId != null && cfg.gitea.oauthSecretFile != null);
+        message = ''config.services.buildbot-nix.master.authBackend is set to "forgejo", then config.services.buildbot-nix.master.gitea.oauthId and config.services.buildbot-nix.master.gitea.oauthSecretFile have to be set.'';
+      }
+      {
+        assertion = cfg.authBackend == "forgejo" -> cfg.gitea.enable;
+        message = ''
+          If `cfg.authBackend` is set to `"forgejo"` the Gitea backend must be enabled with `cfg.gitea.enable`;
+        '';
+      }
+      {
+        assertion =
           cfg.authBackend == "oidc"
           -> (
             cfg.oidc.discoveryUrl != null && cfg.oidc.clientId != null && cfg.oidc.clientSecretFile != null
@@ -1134,6 +1147,7 @@ in
         (lib.mkIf (cfg.authBackend == "httpbasicauth") { set-basic-auth = true; })
         (lib.mkIf
           (lib.elem cfg.accessMode.fullyPrivate.backend [
+            "forgejo"
             "github"
             "gitea"
           ])
@@ -1151,10 +1165,20 @@ in
           redeem-url = "${cfg.gitea.instanceUrl}/login/oauth/access_token";
           validate-url = "${cfg.gitea.instanceUrl}/api/v1/user/emails";
         })
+        (lib.mkIf (cfg.accessMode.fullyPrivate.backend == "forgejo") {
+          provider = "github";
+          provider-display-name = "Forgejo";
+          login-url = "${cfg.gitea.instanceUrl}/login/oauth/authorize";
+          redeem-url = "${cfg.gitea.instanceUrl}/login/oauth/access_token";
+          validate-url = "${cfg.gitea.instanceUrl}/api/v1/user/emails";
+        })
       ];
     };
 
     systemd.services.oauth2-proxy = lib.mkIf (cfg.accessMode ? "fullyPrivate") {
+      environment = lib.mkIf (cfg.accessMode.fullyPrivate.backend == "forgejo") {
+        OAUTH2_PROXY_SCOPE = "read:user read:organization";
+      };
       serviceConfig = {
         ConfigurationDirectory = "oauth2-proxy";
         LoadCredential = [

@@ -10,7 +10,7 @@ time.
 
 - Fast, Parallel evaluation using
   [nix-eval-jobs](https://github.com/nix-community/nix-eval-jobs)
-- Gitea/Github integration:
+- Gitea/Forgejo/Github integration:
   - Login with GitHub to control builds
   - CI status notification in pull requests and on the default branch
 - All builds share the same nix store for speed
@@ -111,9 +111,9 @@ For some actions a login is required. The authentication backend is set by the
 `services.buildbot-nix.master.authBackend` NixOS option ("github", "gitea",
 "oidc", or others).
 
-**Note**: You can configure both GitHub and Gitea integrations simultaneously,
-regardless of which authentication backend you choose. The auth backend only
-determines how users log in to the Buildbot interface.
+**Note**: You can configure both GitHub and Gitea/Forgejo integrations
+simultaneously, regardless of which authentication backend you choose. The auth
+backend only determines how users log in to the Buildbot interface.
 
 We have the following two roles:
 
@@ -132,13 +132,14 @@ secure authentication.
 
 See the [GitHub documentation](./docs/GITHUB.md) for setup instructions.
 
-##### Gitea Integration
+##### Gitea (and Forgejo) Integration
 
-Buildbot-nix integrates with Gitea using access tokens for repository management
-and OAuth2 for user authentication. This enables automatic webhook setup, commit
-status updates, and secure authentication.
+Buildbot-nix integrates with Gitea and Forgejo using access tokens for
+repository management and OAuth2 for user authentication. This enables automatic
+webhook setup, commit status updates, and secure authentication.
 
-See the [Gitea documentation](./docs/GITEA.md) for setup instructions.
+See the [Gitea and Forgejo documentation](./docs/GITEA.md) for setup
+instructions.
 
 ##### Generic OIDC Authentication
 
@@ -150,7 +151,7 @@ See the [OIDC documentation](./docs/OIDC.md) for configuration details.
 
 #### Fully Private
 
-To enable fully private mode, set `acessMode.fullyPrivate` to an attrset
+To enable fully private mode, set `accessMode.fullyPrivate` to an attrset
 containing the required options for fully private use, refer to the examples and
 module implementation (`nix/master.nix`).
 

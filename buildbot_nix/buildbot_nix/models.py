@@ -31,6 +31,7 @@ class InternalError(Exception):
 class AuthBackendConfig(StrEnum):
     github = "github"
     gitea = "gitea"
+    forgejo = "forgejo"
     httpbasicauth = "httpbasicauth"
     oidc = "oidc"
     none = "none"

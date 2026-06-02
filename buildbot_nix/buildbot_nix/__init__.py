@@ -101,8 +101,13 @@ class NixConfigurator(ConfiguratorBase):
             return OIDCAuth(self.config.oidc)
         if self.config.auth_backend == AuthBackendConfig.none:
             return None
-        if backends[self.config.auth_backend] is not None:
-            return backends[self.config.auth_backend].create_auth()
+        # Forgejo is API-compatible with Gitea
+        backend_key = (
+            "gitea" if self.config.auth_backend == AuthBackendConfig.forgejo
+            else self.config.auth_backend
+        )
+        if backends[backend_key] is not None:
+            return backends[backend_key].create_auth()
         return None
 
     def _setup_workers(self, config: dict[str, Any]) -> list[str]:
