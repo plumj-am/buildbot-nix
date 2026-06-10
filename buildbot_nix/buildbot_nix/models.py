@@ -277,9 +277,9 @@ class BranchConfigDict(dict[str, BranchConfig]):
         fn: Callable[[BranchConfig], bool],
     ) -> bool:
         branch_config = self.lookup_branch_config(branch)
-        return branch == default_branch or (
-            branch_config is not None and fn(branch_config)
-        )
+        if branch_config is not None:
+            return fn(branch_config)
+        return branch == default_branch
 
     def do_run(self, default_branch: str, branch: str | None) -> bool:
         return self.check_lookup(default_branch, branch, lambda _: True)
